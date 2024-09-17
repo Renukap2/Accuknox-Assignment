@@ -1,0 +1,17 @@
+import time
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+# Define a receiver function that simulates a time-consuming task
+@receiver(post_save, sender=User)
+def my_signal_receiver(sender, instance, **kwargs):
+    print("Signal received. Starting a time-consuming task...")
+    time.sleep(5)  # Simulate a task that takes 5 seconds
+    print("Task completed.")
+
+# Simulate saving a User instance
+user = User(username='testuser')
+user.save()
+
+print("User save operation completed.")
