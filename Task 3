@@ -1,0 +1,28 @@
+from django.db import models, transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# Define a simple model
+class MyModel(models.Model):
+    name = models.CharField(max_length=100)
+    processed = models.BooleanField(default=False)
+
+# Define a signal handler
+@receiver(post_save, sender=MyModel)
+def my_signal_handler(sender, instance, **kwargs):
+    print("Signal received. Modifying the instance within the same transaction.")
+    instance.processed = True
+    instance.save()
+
+# Create an instance of MyModel within a transaction
+try:
+    with transaction.atomic():
+        obj = MyModel(name="Test")
+        obj.save()
+        print(f"Object created with processed={obj.processed}")
+        raise Exception("Simulating an error to trigger rollback")
+except Exception as e:
+    print(f"Transaction rolled back due to: {e}")
+
+# Check the database to see if the changes were rolled back
+print(f"Final state in database: {MyModel.objects.filter(name='Test').exists()}")
